@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>비밀번호 입력</title>
+    <title>핸드폰 비밀번호 화면</title>
     <style>
         body {
             display: flex;
@@ -21,60 +21,88 @@
             border-radius: 30px;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         .screen {
             width: 100%;
             height: 100%;
-            background-color: #fff;
+            background-color: #1a1a1a;
             border-radius: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
+            padding-top: 50px;
+            box-sizing: border-box;
         }
-        .password-input {
+        .password-display {
             width: 200px;
             height: 40px;
-            font-size: 20px;
+            font-size: 24px;
             text-align: center;
             margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .submit-btn {
-            width: 100px;
-            height: 40px;
-            font-size: 16px;
-            background-color: #007AFF;
-            color: #fff;
+            background-color: transparent;
             border: none;
-            border-radius: 5px;
+            color: white;
+            letter-spacing: 10px;
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 80%;
+        }
+        .key {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             cursor: pointer;
         }
-        .submit-btn:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
+        .key:active {
+            background-color: rgba(255, 255, 255, 0.4);
         }
         .message {
             margin-top: 20px;
             font-size: 18px;
             font-weight: bold;
             text-align: center;
+            color: white;
         }
     </style>
 </head>
 <body>
     <div class="phone">
         <div class="screen">
-            <input type="password" id="passwordInput" class="password-input" maxlength="4" placeholder="비밀번호 4자리">
-            <button onclick="checkPassword()" id="submitBtn" class="submit-btn">확인</button>
+            <input type="text" id="passwordDisplay" class="password-display" readonly maxlength="4" placeholder="****">
+            <div class="keypad">
+                <button class="key" onclick="addDigit(1)">1</button>
+                <button class="key" onclick="addDigit(2)">2</button>
+                <button class="key" onclick="addDigit(3)">3</button>
+                <button class="key" onclick="addDigit(4)">4</button>
+                <button class="key" onclick="addDigit(5)">5</button>
+                <button class="key" onclick="addDigit(6)">6</button>
+                <button class="key" onclick="addDigit(7)">7</button>
+                <button class="key" onclick="addDigit(8)">8</button>
+                <button class="key" onclick="addDigit(9)">9</button>
+                <button class="key" onclick="clearPassword()">C</button>
+                <button class="key" onclick="addDigit(0)">0</button>
+                <button class="key" onclick="checkPassword()">확인</button>
+            </div>
             <p id="message" class="message"></p>
         </div>
     </div>
 
     <script>
-        const passwordInput = document.getElementById('passwordInput');
-        const submitBtn = document.getElementById('submitBtn');
+        const passwordDisplay = document.getElementById('passwordDisplay');
         const messageElement = document.getElementById('message');
 
         function setLockoutTime(time) {
@@ -96,14 +124,12 @@
         }
 
         function disableInput(remainingTime) {
-            passwordInput.disabled = true;
-            submitBtn.disabled = true;
+            document.querySelectorAll('.key').forEach(key => key.disabled = true);
             updateLockoutMessage(remainingTime);
 
             setTimeout(() => {
                 if (!checkLockout()) {
-                    passwordInput.disabled = false;
-                    submitBtn.disabled = false;
+                    document.querySelectorAll('.key').forEach(key => key.disabled = false);
                     messageElement.textContent = '';
                     setLockoutTime(0);
                 }
@@ -114,7 +140,17 @@
             const minutes = Math.floor(remainingTime / 60000);
             const seconds = Math.floor((remainingTime % 60000) / 1000);
             messageElement.textContent = `입력이 제한되었습니다. ${minutes}분 ${seconds}초 후에 다시 시도해주세요.`;
-            messageElement.style.color = 'red';
+            messageElement.style.color = "red";
+        }
+
+        function addDigit(digit) {
+            if (passwordDisplay.value.length < 4) {
+                passwordDisplay.value += digit;
+            }
+        }
+
+        function clearPassword() {
+            passwordDisplay.value = '';
         }
 
         function checkPassword() {
@@ -122,22 +158,22 @@
                 return;
             }
 
-            const input = passwordInput.value;
+            const input = passwordDisplay.value;
             const today = new Date();
             const correctPassword = String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
 
             if (input === correctPassword) {
-                messageElement.style.color = 'green';
                 messageElement.textContent = '정답입니다!';
+                messageElement.style.color = "green";
                 setLockoutTime(0);
             } else {
-                messageElement.style.color = 'red';
                 messageElement.textContent = '오답입니다. 5분 후에 다시 시도해주세요.';
+                messageElement.style.color = "red";
                 const lockoutEndTime = Date.now() + 5 * 60 * 1000; // 5분
                 setLockoutTime(lockoutEndTime);
                 disableInput(5 * 60 * 1000);
             }
-            passwordInput.value = '';
+            passwordDisplay.value = '';
         }
 
         // 페이지 로드 시 잠금 상태 확인
