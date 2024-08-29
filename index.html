@@ -17,18 +17,21 @@
         .phone {
             width: 300px;
             height: 600px;
-            background-color: #000;
+            background-image: url('https://github.com/lucian1213/live/blob/main/Purple-iPhone-Wallpaper.jpg?raw=true');
+            background-size: cover;
+            background-position: center;
             border-radius: 30px;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            position: relative;
         }
         .screen {
             width: 100%;
             height: 100%;
-            background-color: #1a1a1a;
+            background-color: rgba(0, 0, 0, 0.5);
             border-radius: 20px;
             display: flex;
             flex-direction: column;
@@ -66,16 +69,22 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
+            backdrop-filter: blur(5px);
         }
         .key:active {
             background-color: rgba(255, 255, 255, 0.4);
         }
         .message {
-            margin-top: 20px;
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            margin: auto;
             font-size: 18px;
             font-weight: bold;
             text-align: center;
             color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -97,8 +106,8 @@
                 <button class="key" onclick="addDigit(0)">0</button>
                 <button class="key" onclick="checkPassword()">확인</button>
             </div>
-            <p id="message" class="message"></p>
         </div>
+        <p id="message" class="message"></p>
     </div>
 
     <script>
@@ -140,7 +149,6 @@
             const minutes = Math.floor(remainingTime / 60000);
             const seconds = Math.floor((remainingTime % 60000) / 1000);
             messageElement.textContent = `입력이 제한되었습니다. ${minutes}분 ${seconds}초 후에 다시 시도해주세요.`;
-            messageElement.style.color = "red";
         }
 
         function addDigit(digit) {
@@ -164,11 +172,9 @@
 
             if (input === correctPassword) {
                 messageElement.textContent = '정답입니다!';
-                messageElement.style.color = "green";
                 setLockoutTime(0);
             } else {
                 messageElement.textContent = '오답입니다. 5분 후에 다시 시도해주세요.';
-                messageElement.style.color = "red";
                 const lockoutEndTime = Date.now() + 5 * 60 * 1000; // 5분
                 setLockoutTime(lockoutEndTime);
                 disableInput(5 * 60 * 1000);
