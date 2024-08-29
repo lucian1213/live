@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비밀번호 입력</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .phone {
+            width: 300px;
+            height: 600px;
+            background-color: #000;
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .password-input {
+            width: 200px;
+            height: 40px;
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .submit-btn {
+            width: 100px;
+            height: 40px;
+            font-size: 16px;
+            background-color: #007AFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .submit-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="screen">
+            <input type="password" id="passwordInput" class="password-input" maxlength="4" placeholder="비밀번호 4자리">
+            <button onclick="checkPassword()" id="submitBtn" class="submit-btn">확인</button>
+            <p id="message" class="message"></p>
+        </div>
+    </div>
+
+    <script>
+        const passwordInput = document.getElementById('passwordInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const messageElement = document.getElementById('message');
+
+        function setLockoutTime(time) {
+            localStorage.setItem('lockoutTime', time);
+        }
+
+        function getLockoutTime() {
+            return parseInt(localStorage.getItem('lockoutTime')) || 0;
+        }
+
+        function checkLockout() {
+            const lockoutEndTime = getLockoutTime();
+            const now = Date.now();
+            if (now < lockoutEndTime) {
+                disableInput(lockoutEndTime - now);
+                return true;
+            }
+            return false;
+        }
+
+        function disableInput(remainingTime) {
+            passwordInput.disabled = true;
+            submitBtn.disabled = true;
+            updateLockoutMessage(remainingTime);
+
+            setTimeout(() => {
+                if (!checkLockout()) {
+                    passwordInput.disabled = false;
+                    submitBtn.disabled = false;
+                    messageElement.textContent = '';
+                    setLockoutTime(0);
+                }
+            }, remainingTime);
+        }
+
+        function updateLockoutMessage(remainingTime) {
+            const minutes = Math.floor(remainingTime / 60000);
+            const seconds = Math.floor((remainingTime % 60000) / 1000);
+            messageElement.textContent = `입력이 제한되었습니다. ${minutes}분 ${seconds}초 후에 다시 시도해주세요.`;
+            messageElement.style.color = 'red';
+        }
+
+        function checkPassword() {
+            if (checkLockout()) {
+                return;
+            }
+
+            const input = passwordInput.value;
+            const today = new Date();
+            const correctPassword = String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
+
+            if (input === correctPassword) {
+                messageElement.style.color = 'green';
+                messageElement.textContent = '정답입니다!';
+                setLockoutTime(0);
+            } else {
+                messageElement.style.color = 'red';
+                messageElement.textContent = '오답입니다. 5분 후에 다시 시도해주세요.';
+                const lockoutEndTime = Date.now() + 5 * 60 * 1000; // 5분
+                setLockoutTime(lockoutEndTime);
+                disableInput(5 * 60 * 1000);
+            }
+            passwordInput.value = '';
+        }
+
+        // 페이지 로드 시 잠금 상태 확인
+        window.onload = checkLockout;
+
+        // 1초마다 잠금 상태 업데이트
+        setInterval(checkLockout, 1000);
+    </script>
+</body>
+</html>
