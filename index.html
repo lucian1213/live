@@ -40,7 +40,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-image: url('https://github.com/lucian1213/live/blob/main/status_bar_02.png?raw=true');
+            background-image: url('https://github.com/lucian1213/live/blob/main/Purple-iPhone-Wallpaper.jpg?raw=true');
             background-size: cover;
             background-position: center;
             filter: blur(10px);
@@ -64,7 +64,7 @@
             left: 0;
             right: 0;
             height: 20px;
-            background-image: url('https://github.com/lucian1213/live/blob/main/status_bar_01.png?raw=true');
+            background-image: url('https://github.com/lucian1213/live/blob/main/status_bar_02.png?raw=true');
             background-size: cover;
             background-position: center;
             display: none;
@@ -90,6 +90,10 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
+            width: 90%;
+            white-space: pre-wrap;
+            word-break: keep-all;
+            line-height: 1.5;
         }
         .hint {
             font-size: 16px;
@@ -280,15 +284,11 @@
             const message = "스마트폰이 열렸습니다.\n\n특별한 단서 C를 획득합니다.";
             let index = 0;
             successMessageElement.style.opacity = '1';
-            successMessageElement.innerHTML = ''; // 메시지 초기화
+            successMessageElement.textContent = '';
             
             function typeWriter() {
                 if (index < message.length) {
-                    if (message.charAt(index) === '\n') {
-                        successMessageElement.innerHTML += '<br>';
-                    } else {
-                        successMessageElement.innerHTML += message.charAt(index);
-                    }
+                    successMessageElement.textContent += message[index];
                     index++;
                     setTimeout(typeWriter, 100);
                 }
