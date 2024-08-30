@@ -179,7 +179,9 @@
         function updateLockoutMessage(remainingTime) {
             const minutes = Math.floor(remainingTime / 60000);
             const seconds = Math.floor((remainingTime % 60000) / 1000);
-            messageElement.textContent = `입력이 제한되었습니다. \n${minutes}분 ${seconds}초 후에\n다시 시도해주세요.`;
+            messageElement.textContent = `입력이 제한되었습니다.
+            ${minutes}분 ${seconds}초 후에
+            다시 시도해주세요.`;
         }
 
         function addDigit(digit) {
