@@ -277,13 +277,18 @@
         }
 
         function showSuccessMessage() {
-            const message = "스마트폰이 열렸습니다.\n특별한 단서 C를 획득합니다.";
+            const message = "스마트폰이 열렸습니다.\n\n특별한 단서 C를 획득합니다.";
             let index = 0;
             successMessageElement.style.opacity = '1';
+            successMessageElement.innerHTML = ''; // 메시지 초기화
             
             function typeWriter() {
                 if (index < message.length) {
-                    successMessageElement.innerHTML += message.charAt(index);
+                    if (message.charAt(index) === '\n') {
+                        successMessageElement.innerHTML += '<br>';
+                    } else {
+                        successMessageElement.innerHTML += message.charAt(index);
+                    }
                     index++;
                     setTimeout(typeWriter, 100);
                 }
