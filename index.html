@@ -25,6 +25,7 @@
             flex-direction: column;
             justify-content: space-between;
             position: relative;
+            overflow: hidden;
         }
         .screen {
             width: 100%;
@@ -40,6 +41,8 @@
             padding: 40px 0;
             box-sizing: border-box;
             position: relative;
+            filter: blur(10px);
+            transition: filter 2s ease-in-out;
         }
         .screen::after {
             content: '';
@@ -76,6 +79,7 @@
             width: 100%;
             z-index: 1;
             transform: translateX(10px);
+            transition: opacity 1s ease-in-out;
         }
         .password-display {
             width: 200px;
@@ -115,10 +119,10 @@
 </head>
 <body>
     <div class="phone">
-        <div class="screen">
+        <div class="screen" id="screen">
             <p id="message" class="message"></p>
-            <div class="input-area">
-                <p id="warning" class="warning">비밀번호를 잘못 입력하면<br>5분 간 핸드폰이 잠깁니다.</p>
+            <div class="input-area" id="inputArea">
+                <p id="warning" class="warning">비밀번호를 잘못 입력하면 5분 간 핸드폰이 잠깁니다.</p>
                 <input type="text" id="passwordDisplay" class="password-display" readonly maxlength="4" placeholder="****">
                 <div class="keypad">
                     <button class="key" onclick="addDigit(1)">1</button>
@@ -142,6 +146,8 @@
         const passwordDisplay = document.getElementById('passwordDisplay');
         const messageElement = document.getElementById('message');
         const warningElement = document.getElementById('warning');
+        const screenElement = document.getElementById('screen');
+        const inputAreaElement = document.getElementById('inputArea');
 
         function setLockoutTime(time) {
             localStorage.setItem('lockoutTime', time);
@@ -179,16 +185,7 @@
         function updateLockoutMessage(remainingTime) {
             const minutes = Math.floor(remainingTime / 60000);
             const seconds = Math.floor((remainingTime % 60000) / 1000);
-            messageElement.innerHTML = '';
-            const line1 = document.createElement('div');
-            line1.textContent = '입력이 제한되었습니다.';
-            const line2 = document.createElement('div');
-            line2.textContent = `${minutes}분 ${seconds}초 후에`;
-            const line3 = document.createElement('div');
-            line3.textContent = '다시 시도해주세요.';
-            messageElement.appendChild(line1);
-            messageElement.appendChild(line2);
-            messageElement.appendChild(line3);
+            messageElement.textContent = `입력이 제한되었습니다.\n${minutes}분 ${seconds}초 후에\n다시 시도해주세요.`;
         }
 
         function addDigit(digit) {
@@ -214,8 +211,14 @@
                 messageElement.textContent = '정답입니다!';
                 warningElement.style.display = 'none';
                 setLockoutTime(0);
+                // 애니메이션 적용
+                screenElement.style.filter = 'blur(0)';
+                inputAreaElement.style.opacity = '0';
+                setTimeout(() => {
+                    inputAreaElement.style.display = 'none';
+                }, 1000);
             } else {
-                messageElement.textContent = '오답입니다.<br>5분 후에 다시 시도해주세요.';
+                messageElement.textContent = '오답입니다.\n5분 후에\n다시 시도해주세요.';
                 warningElement.style.display = 'none';
                 const lockoutEndTime = Date.now() + 5 * 60 * 1000; // 5분
                 setLockoutTime(lockoutEndTime);
