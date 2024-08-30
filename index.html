@@ -58,6 +58,18 @@
             padding: 40px 0;
             box-sizing: border-box;
         }
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background-image: url('https://github.com/lucian1213/live/blob/main/status_bar_01.png?raw=true');
+            background-size: cover;
+            background-position: center;
+            display: none;
+            z-index: 2;
+        }
         .message {
             font-size: 18px;
             font-weight: bold;
@@ -69,7 +81,7 @@
         .hint {
             font-size: 16px;
             text-align: center;
-            color: #00ffff; /* 청록색으로 변경 */
+            color: #00ffff;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
             padding: 0 20px;
             margin-bottom: 10px;
@@ -129,6 +141,7 @@
 <body>
     <div class="phone">
         <div class="screen">
+            <div class="status-bar" id="statusBar"></div>
             <div class="background" id="background"></div>
             <div class="content">
                 <p id="message" class="message"></p>
@@ -162,6 +175,7 @@
         const hintElement = document.getElementById('hint');
         const backgroundElement = document.getElementById('background');
         const inputAreaElement = document.getElementById('inputArea');
+        const statusBarElement = document.getElementById('statusBar');
 
         function setLockoutTime(time) {
             localStorage.setItem('lockoutTime', time);
@@ -231,6 +245,8 @@
                 // 애니메이션 적용
                 backgroundElement.style.filter = 'blur(0)';
                 inputAreaElement.style.opacity = '0';
+                // 상태표시줄 표시
+                statusBarElement.style.display = 'block';
                 setTimeout(() => {
                     inputAreaElement.style.display = 'none';
                 }, 500);
