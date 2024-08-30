@@ -60,12 +60,22 @@
             z-index: 1;
             padding: 0 20px;
         }
+        .warning {
+            font-size: 14px;
+            text-align: center;
+            color: #ffcc00;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            z-index: 1;
+            padding: 0 20px;
+            margin-bottom: 10px;
+        }
         .input-area {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
             z-index: 1;
+            transform: translateX(10px);
         }
         .password-display {
             width: 200px;
@@ -108,6 +118,7 @@
         <div class="screen">
             <p id="message" class="message"></p>
             <div class="input-area">
+                <p id="warning" class="warning">비밀번호를 잘못 입력하면<br>5분 간 핸드폰이 잠깁니다.</p>
                 <input type="text" id="passwordDisplay" class="password-display" readonly maxlength="4" placeholder="****">
                 <div class="keypad">
                     <button class="key" onclick="addDigit(1)">1</button>
@@ -130,6 +141,7 @@
     <script>
         const passwordDisplay = document.getElementById('passwordDisplay');
         const messageElement = document.getElementById('message');
+        const warningElement = document.getElementById('warning');
 
         function setLockoutTime(time) {
             localStorage.setItem('lockoutTime', time);
@@ -152,11 +164,13 @@
         function disableInput(remainingTime) {
             document.querySelectorAll('.key').forEach(key => key.disabled = true);
             updateLockoutMessage(remainingTime);
+            warningElement.style.display = 'none';
 
             setTimeout(() => {
                 if (!checkLockout()) {
                     document.querySelectorAll('.key').forEach(key => key.disabled = false);
                     messageElement.textContent = '';
+                    warningElement.style.display = 'block';
                     setLockoutTime(0);
                 }
             }, remainingTime);
@@ -165,7 +179,7 @@
         function updateLockoutMessage(remainingTime) {
             const minutes = Math.floor(remainingTime / 60000);
             const seconds = Math.floor((remainingTime % 60000) / 1000);
-            messageElement.textContent = `입력이 제한되었습니다. ${minutes}분 ${seconds}초 후에 다시 시도해주세요.`;
+            messageElement.textContent = `입력이 제한되었습니다. <br>${minutes}분 ${seconds}초 후에<br>다시 시도해주세요.`;
         }
 
         function addDigit(digit) {
@@ -189,9 +203,11 @@
 
             if (input === correctPassword) {
                 messageElement.textContent = '정답입니다!';
+                warningElement.style.display = 'none';
                 setLockoutTime(0);
             } else {
-                messageElement.textContent = '오답입니다. 5분 후에 다시 시도해주세요.';
+                messageElement.textContent = '오답입니다.<br>5분 후에 다시 시도해주세요.';
+                warningElement.style.display = 'none';
                 const lockoutEndTime = Date.now() + 5 * 60 * 1000; // 5분
                 setLockoutTime(lockoutEndTime);
                 disableInput(5 * 60 * 1000);
@@ -200,7 +216,13 @@
         }
 
         // 페이지 로드 시 잠금 상태 확인
-        window.onload = checkLockout;
+        window.onload = function() {
+            if (checkLockout()) {
+                warningElement.style.display = 'none';
+            } else {
+                warningElement.style.display = 'block';
+            }
+        };
 
         // 1초마다 잠금 상태 업데이트
         setInterval(checkLockout, 1000);
