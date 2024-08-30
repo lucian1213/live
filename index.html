@@ -78,6 +78,19 @@
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
             padding: 0 20px;
         }
+        .success-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
         .hint {
             font-size: 16px;
             text-align: center;
@@ -164,6 +177,7 @@
                         <button class="key" onclick="checkPassword()">확인</button>
                     </div>
                 </div>
+                <p id="successMessage" class="success-message"></p>
             </div>
         </div>
     </div>
@@ -176,6 +190,7 @@
         const backgroundElement = document.getElementById('background');
         const inputAreaElement = document.getElementById('inputArea');
         const statusBarElement = document.getElementById('statusBar');
+        const successMessageElement = document.getElementById('successMessage');
 
         function setLockoutTime(time) {
             localStorage.setItem('lockoutTime', time);
@@ -238,7 +253,6 @@
             const correctPassword = String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
 
             if (input === correctPassword) {
-                messageElement.textContent = '정답입니다!';
                 warningElement.style.display = 'none';
                 hintElement.style.display = 'none';
                 setLockoutTime(0);
@@ -249,7 +263,8 @@
                 statusBarElement.style.display = 'block';
                 setTimeout(() => {
                     inputAreaElement.style.display = 'none';
-                }, 500);
+                    showSuccessMessage();
+                }, 1500);
             } else {
                 messageElement.textContent = '오답입니다.\n5분 후에\n다시 시도해주세요.';
                 warningElement.style.display = 'none';
@@ -259,6 +274,22 @@
                 disableInput(5 * 60 * 1000);
             }
             passwordDisplay.value = '';
+        }
+
+        function showSuccessMessage() {
+            const message = "스마트폰이 열렸습니다.\n특별한 단서 C를 획득합니다.";
+            let index = 0;
+            successMessageElement.style.opacity = '1';
+            
+            function typeWriter() {
+                if (index < message.length) {
+                    successMessageElement.innerHTML += message.charAt(index);
+                    index++;
+                    setTimeout(typeWriter, 100);
+                }
+            }
+            
+            typeWriter();
         }
 
         // 페이지 로드 시 잠금 상태 확인
