@@ -31,12 +31,7 @@
             width: 100%;
             height: 100%;
             border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            padding: 40px 0;
-            box-sizing: border-box;
+            overflow: hidden;
             position: relative;
         }
         .background {
@@ -49,7 +44,7 @@
             background-size: cover;
             background-position: center;
             filter: blur(10px);
-            transition: filter 2s ease-in-out;
+            transition: filter 0.5s ease-in-out;
         }
         .content {
             position: relative;
@@ -60,6 +55,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
+            padding: 40px 0;
+            box-sizing: border-box;
         }
         .message {
             font-size: 18px;
@@ -68,6 +65,14 @@
             color: white;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
             padding: 0 20px;
+        }
+        .hint {
+            font-size: 16px;
+            text-align: center;
+            color: #00ffff; /* 청록색으로 변경 */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            padding: 0 20px;
+            margin-bottom: 10px;
         }
         .warning {
             font-size: 14px;
@@ -83,7 +88,7 @@
             align-items: center;
             width: 100%;
             transform: translateX(10px);
-            transition: opacity 1s ease-in-out;
+            transition: opacity 0.5s ease-in-out;
         }
         .password-display {
             width: 200px;
@@ -128,6 +133,7 @@
             <div class="content">
                 <p id="message" class="message"></p>
                 <div class="input-area" id="inputArea">
+                    <p id="hint" class="hint">힌트 : 내 생일</p>
                     <p id="warning" class="warning">비밀번호를 잘못 입력하면 5분 간 핸드폰이 잠깁니다.</p>
                     <input type="text" id="passwordDisplay" class="password-display" readonly maxlength="4" placeholder="****">
                     <div class="keypad">
@@ -153,6 +159,7 @@
         const passwordDisplay = document.getElementById('passwordDisplay');
         const messageElement = document.getElementById('message');
         const warningElement = document.getElementById('warning');
+        const hintElement = document.getElementById('hint');
         const backgroundElement = document.getElementById('background');
         const inputAreaElement = document.getElementById('inputArea');
 
@@ -178,12 +185,14 @@
             document.querySelectorAll('.key').forEach(key => key.disabled = true);
             updateLockoutMessage(remainingTime);
             warningElement.style.display = 'none';
+            hintElement.style.display = 'none';
 
             setTimeout(() => {
                 if (!checkLockout()) {
                     document.querySelectorAll('.key').forEach(key => key.disabled = false);
                     messageElement.textContent = '';
                     warningElement.style.display = 'block';
+                    hintElement.style.display = 'block';
                     setLockoutTime(0);
                 }
             }, remainingTime);
@@ -217,16 +226,18 @@
             if (input === correctPassword) {
                 messageElement.textContent = '정답입니다!';
                 warningElement.style.display = 'none';
+                hintElement.style.display = 'none';
                 setLockoutTime(0);
                 // 애니메이션 적용
                 backgroundElement.style.filter = 'blur(0)';
                 inputAreaElement.style.opacity = '0';
                 setTimeout(() => {
                     inputAreaElement.style.display = 'none';
-                }, 1000);
+                }, 500);
             } else {
                 messageElement.textContent = '오답입니다.\n5분 후에\n다시 시도해주세요.';
                 warningElement.style.display = 'none';
+                hintElement.style.display = 'none';
                 const lockoutEndTime = Date.now() + 5 * 60 * 1000; // 5분
                 setLockoutTime(lockoutEndTime);
                 disableInput(5 * 60 * 1000);
@@ -238,8 +249,10 @@
         window.onload = function() {
             if (checkLockout()) {
                 warningElement.style.display = 'none';
+                hintElement.style.display = 'none';
             } else {
                 warningElement.style.display = 'block';
+                hintElement.style.display = 'block';
             }
         };
 
