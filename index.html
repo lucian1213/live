@@ -5,7 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>핸드폰 비밀번호 화면</title>
     <style>
-        /* 기존 스타일 유지 */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .phone {
+            width: 300px;
+            height: 600px;
+            background-color: #000;
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('https://github.com/lucian1213/live/blob/main/Purple-iPhone-Wallpaper.jpg?raw=true');
+            background-size: cover;
+            background-position: center;
+            filter: blur(10px);
+            transition: filter 0.5s ease-in-out;
+        }
+        .content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px 0;
+            box-sizing: border-box;
+        }
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background-image: url('https://github.com/lucian1213/live/blob/main/status_bar_02.png?raw=true');
+            background-size: cover;
+            background-position: center;
+            display: none;
+            z-index: 2;
+        }
         .lock-icon {
             position: absolute;
             top: 40px;
@@ -30,6 +94,80 @@
             left: 0;
             right: 0;
             white-space: pre-line;
+        }
+        .success-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            width: 90%;
+            white-space: pre-wrap;
+            word-break: keep-all;
+            line-height: 1.5;
+        }
+        .hint {
+            font-size: 16px;
+            text-align: center;
+            color: #00ffff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            padding: 0 20px;
+            margin-bottom: 10px;
+        }
+        .warning {
+            font-size: 14px;
+            text-align: center;
+            color: #ffcc00;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            padding: 0 20px;
+            margin-bottom: 10px;
+        }
+        .input-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .password-display {
+            width: 190px;
+            height: 40px;
+            font-size: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            letter-spacing: 10px;
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 80%;
+        }
+        .key {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+        .key:active {
+            background-color: rgba(255, 255, 255, 0.4);
         }
     </style>
 </head>
@@ -66,7 +204,23 @@
     </div>
 
     <script>
-        // 기존 JavaScript 변수 선언 유지
+        const passwordDisplay = document.getElementById('passwordDisplay');
+        const messageElement = document.getElementById('message');
+        const warningElement = document.getElementById('warning');
+        const hintElement = document.getElementById('hint');
+        const backgroundElement = document.getElementById('background');
+        const inputAreaElement = document.getElementById('inputArea');
+        const statusBarElement = document.getElementById('statusBar');
+        const successMessageElement = document.getElementById('successMessage');
+        const lockIconElement = document.getElementById('lockIcon');
+
+        function setLockoutTime(time) {
+            localStorage.setItem('lockoutTime', time);
+        }
+
+        function getLockoutTime() {
+            return parseInt(localStorage.getItem('lockoutTime')) || 0;
+        }
 
         function checkLockout() {
             const lockoutEndTime = getLockoutTime();
@@ -101,6 +255,16 @@
             messageElement.textContent = `입력이 제한되었습니다.\n${minutes}분 ${seconds}초 후에\n다시 시도해주세요.`;
         }
 
+        function addDigit(digit) {
+            if (passwordDisplay.value.length < 4) {
+                passwordDisplay.value += digit;
+            }
+        }
+
+        function clearPassword() {
+            passwordDisplay.value = '';
+        }
+
         function checkPassword() {
             if (checkLockout()) {
                 return;
@@ -126,6 +290,7 @@
                 messageElement.textContent = '오답입니다.\n5분 후에\n다시 시도해주세요.';
                 warningElement.style.display = 'none';
                 hintElement.style.display = 'none';
+                lockIconElement.style.display = 'block';
                 const lockoutEndTime = Date.now() + 5 * 60 * 1000;
                 setLockoutTime(lockoutEndTime);
                 disableInput(5 * 60 * 1000);
@@ -133,19 +298,36 @@
             passwordDisplay.value = '';
         }
 
-        // 페이지 로드 시 잠금 상태 확인
+        function showSuccessMessage() {
+            const message = "스마트폰이 열렸습니다.\n\n특별한 단서 C를 획득합니다.";
+            let index = 0;
+            successMessageElement.style.opacity = '1';
+            successMessageElement.textContent = '';
+            
+            function typeWriter() {
+                if (index < message.length) {
+                    successMessageElement.textContent += message[index];
+                    index++;
+                    setTimeout(typeWriter, 100);
+                }
+            }
+            
+            typeWriter();
+        }
+
         window.onload = function() {
             if (checkLockout()) {
                 warningElement.style.display = 'none';
                 hintElement.style.display = 'none';
+                lockIconElement.style.display = 'block';
             } else {
                 warningElement.style.display = 'block';
                 hintElement.style.display = 'block';
-                lockIconElement.style.display = 'block';  // 초기에 자물쇠 아이콘 표시
+                lockIconElement.style.display = 'block';
             }
         };
 
-        // 나머지 JavaScript 코드는 그대로 유지
+        setInterval(checkLockout, 1000);
     </script>
 </body>
 </html>
