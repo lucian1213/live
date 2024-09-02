@@ -54,7 +54,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: space-between;
             padding: 40px 0;
             box-sizing: border-box;
         }
@@ -70,18 +70,6 @@
             display: none;
             z-index: 2;
         }
-        .lock-icon {
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 40px;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z'/%3E%3C/svg%3E");
-            background-size: contain;
-            background-repeat: no-repeat;
-            z-index: 3;
-        }
         .message {
             font-size: 18px;
             font-weight: bold;
@@ -89,11 +77,6 @@
             color: white;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
             padding: 0 20px;
-            position: absolute;
-            bottom: 150px;
-            left: 0;
-            right: 0;
-            white-space: pre-line;
         }
         .success-message {
             position: absolute;
@@ -133,11 +116,11 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
+            transform: translateX(10px);
             transition: opacity 0.5s ease-in-out;
-            transform: translateX(10px);  /* 전체 구성 요소를 오른쪽으로 10px 이동 */
         }
         .password-display {
-            width: 180px;  /* 10px 더 줄임 */
+            width: 200px;
             height: 40px;
             font-size: 24px;
             text-align: center;
@@ -177,12 +160,11 @@
         <div class="screen">
             <div class="status-bar" id="statusBar"></div>
             <div class="background" id="background"></div>
-            <div class="lock-icon" id="lockIcon"></div>
             <div class="content">
                 <p id="message" class="message"></p>
                 <div class="input-area" id="inputArea">
                     <p id="hint" class="hint">힌트 : 내 생일</p>
-                    <p id="warning" class="warning">비밀번호를 잘못 입력하면<br>5분간 핸드폰이 잠깁니다.</p>
+                    <p id="warning" class="warning">비밀번호를 잘못 입력하면 5분 간 핸드폰이 잠깁니다.</p>
                     <input type="text" id="passwordDisplay" class="password-display" readonly maxlength="4" placeholder="****">
                     <div class="keypad">
                         <button class="key" onclick="addDigit(1)">1</button>
@@ -205,7 +187,129 @@
     </div>
 
     <script>
-        // 이전 JavaScript 코드를 그대로 유지
+        const passwordDisplay = document.getElementById('passwordDisplay');
+        const messageElement = document.getElementById('message');
+        const warningElement = document.getElementById('warning');
+        const hintElement = document.getElementById('hint');
+        const backgroundElement = document.getElementById('background');
+        const inputAreaElement = document.getElementById('inputArea');
+        const statusBarElement = document.getElementById('statusBar');
+        const successMessageElement = document.getElementById('successMessage');
+
+        function setLockoutTime(time) {
+            localStorage.setItem('lockoutTime', time);
+        }
+
+        function getLockoutTime() {
+            return parseInt(localStorage.getItem('lockoutTime')) || 0;
+        }
+
+        function checkLockout() {
+            const lockoutEndTime = getLockoutTime();
+            const now = Date.now();
+            if (now < lockoutEndTime) {
+                disableInput(lockoutEndTime - now);
+                return true;
+            }
+            return false;
+        }
+
+        function disableInput(remainingTime) {
+            document.querySelectorAll('.key').forEach(key => key.disabled = true);
+            updateLockoutMessage(remainingTime);
+            warningElement.style.display = 'none';
+            hintElement.style.display = 'none';
+
+            setTimeout(() => {
+                if (!checkLockout()) {
+                    document.querySelectorAll('.key').forEach(key => key.disabled = false);
+                    messageElement.textContent = '';
+                    warningElement.style.display = 'block';
+                    hintElement.style.display = 'block';
+                    setLockoutTime(0);
+                }
+            }, remainingTime);
+        }
+
+        function updateLockoutMessage(remainingTime) {
+            const minutes = Math.floor(remainingTime / 60000);
+            const seconds = Math.floor((remainingTime % 60000) / 1000);
+            messageElement.textContent = `입력이 제한되었습니다.\n${minutes}분 ${seconds}초 후에\n다시 시도해주세요.`;
+        }
+
+        function addDigit(digit) {
+            if (passwordDisplay.value.length < 4) {
+                passwordDisplay.value += digit;
+            }
+        }
+
+        function clearPassword() {
+            passwordDisplay.value = '';
+        }
+
+        function checkPassword() {
+            if (checkLockout()) {
+                return;
+            }
+
+            const input = passwordDisplay.value;
+            const today = new Date();
+            const correctPassword = String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0');
+
+            if (input === correctPassword) {
+                warningElement.style.display = 'none';
+                hintElement.style.display = 'none';
+                setLockoutTime(0);
+                // 애니메이션 적용
+                backgroundElement.style.filter = 'blur(0)';
+                inputAreaElement.style.opacity = '0';
+                // 상태표시줄 표시
+                statusBarElement.style.display = 'block';
+                setTimeout(() => {
+                    inputAreaElement.style.display = 'none';
+                    showSuccessMessage();
+                }, 1500);
+            } else {
+                messageElement.textContent = '오답입니다.\n5분 후에\n다시 시도해주세요.';
+                warningElement.style.display = 'none';
+                hintElement.style.display = 'none';
+                const lockoutEndTime = Date.now() + 5 * 60 * 1000; // 5분
+                setLockoutTime(lockoutEndTime);
+                disableInput(5 * 60 * 1000);
+            }
+            passwordDisplay.value = '';
+        }
+
+        function showSuccessMessage() {
+            const message = "스마트폰이 열렸습니다.\n\n특별한 단서 C를 획득합니다.";
+            let index = 0;
+            successMessageElement.style.opacity = '1';
+            successMessageElement.textContent = '';
+            
+            function typeWriter() {
+                if (index < message.length) {
+                    successMessageElement.textContent += message[index];
+                    index++;
+                    setTimeout(typeWriter, 100);
+                }
+            }
+            
+            typeWriter();
+        }
+
+        // 페이지 로드 시 잠금 상태 확인
+        window.onload = function() {
+            if (checkLockout()) {
+                warningElement.style.display = 'none';
+                hintElement.style.display = 'none';
+            } else {
+                warningElement.style.display = 'block';
+                hintElement.style.display = 'block';
+            }
+        };
+
+        // 1초마다 잠금 상태 업데이트
+        setInterval(checkLockout, 1000);
     </script>
 </body>
 </html>
